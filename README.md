@@ -6,4 +6,9 @@ MEOWNED (MEssages Over tWitter ¿stegaNography? Exfiltrating Data)
 * pip3 install Stegano
 
 ## Usage
-* meopwn_cli <image to tweet> <secrete message>
+### Source Image
+The image should be a .png, preferably by passed through http://ravenworks.ca/twitimagefix/ in order to prevent twitter image compression.
+
+* > meopwn_cli [image to tweet] [secrete message]
+
+
