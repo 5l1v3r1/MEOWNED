@@ -18,10 +18,10 @@ victim_hash = "0fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4"
 secret = lsb.hide("./source-imgs/" + sys.argv[1], sys.argv[2])
 secret.save("./output-imgs/" + sys.argv[1])
 
-api = twitter.Api(consumer_key='0Vjgi9pp20jowOQ31wOuPVnIu', 
-    consumer_secret='Ggm63HT937CFh90JQ92EUHIn5CeOxtpQIxqSiJ5G8aMKy2fPlk', 
-    access_token_key='869675595185172480-ZLgwii8F00ZwMr8SMtwICNkvK3IJ7BZ', 
-    access_token_secret='lxVEmYPmtyWc73Qz4t9XaLRcwsZNt83DsNfHJ9iYBeXix')
+api = twitter.Api(consumer_key='consumer_key',
+                      consumer_secret='consumer_secret',
+                      access_token_key='access_token',
+                      access_token_secret='access_token_secret')
 
 # print(api.VerifyCredentials())
 
