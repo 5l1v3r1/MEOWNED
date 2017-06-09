@@ -9,8 +9,14 @@ import yaml
 import twitter
 from stegano import lsb
 
-if len(sys.argv) != 4:
-    sys.exit('Usage: meopwn_cli [victim_hashtag] [image to tweet] [secret message]')
+if len(sys.argv) != 5:
+    sys.exit('Usage: meopwn_cli [victim_hashtag] [image to tweet] [-m/f] [secret message/file]')
+
+if(sys.argv[3] == "-f"):
+    file = open(sys.argv[4], "r") 
+    message = file.read() 
+else:
+    message = sys.argv[4]
 
 # Import YAML
 with open("conf.yaml", 'r') as stream:
@@ -33,7 +39,7 @@ except twitter.error.TwitterError as exc:
     sys.exit("Error: Couldn't authenticate with Twitter.")
 
 # Hide the secret message
-secret = lsb.hide("./source-imgs/" + sys.argv[2], sys.argv[3])
+secret = lsb.hide("./source-imgs/" + sys.argv[2], message)
 secret.save("./output-imgs/" + sys.argv[2])
 
 # Post message to Twitter
