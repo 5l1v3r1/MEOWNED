@@ -1,8 +1,8 @@
-#!/usr/bin/python
-"""MEOWNED (MEssages Over tWitter Exfiltrating Data)"""
+#!/usr/bin/python3
+# """MEOWNED (MEssages Over tWitter Exfiltrating Data)"""
 """pip3 install python-twitter"""
 """pip3 install Stegano"""
-"""pip install pyyaml"""
+"""pip3 install pyyaml"""
 
 import sys
 import yaml

