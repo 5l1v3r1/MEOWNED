@@ -1,0 +1,2 @@
+python-twitter==3.3
+Stegano==0.8.1
