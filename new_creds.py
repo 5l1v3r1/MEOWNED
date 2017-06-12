@@ -9,12 +9,12 @@ headers = {
     'Connection': 'Keep-Alive'
 }
 
-url = "https://twitter.com/search?q=%230fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4"
+url = "https://twitter.com/search?f=tweets&q=%23NEW_CREDENTIALS%20%230fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4"
 
 response = requests.get(url, headers=headers)
 content = response.text.encode('utf-8').strip()
 
-pattern = re.compile(r'(https:\/\/pbs\.twimg\.com\/media\/[\w]*\.png)')
+pattern = re.compile(r'(https:\/\/pbs\.twimg\.com\/media\/.*\.png)')
 
 for (image_url) in re.findall(pattern, content):
     print image_url

