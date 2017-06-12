@@ -1,6 +1,9 @@
 id: 
+api_cred_ttl: 600
+max_idle_secs: 60
+min_idle_secs: 0
 twitter:
-  consumer_key: 
-  consumer_secret: 
   access_token_key: 
   access_token_secret: 
+  consumer_key: 
+  consumer_secret: 
