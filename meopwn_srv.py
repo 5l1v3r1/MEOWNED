@@ -84,8 +84,8 @@ else:
 
 # Post image to Twitter
 print("Tweeting image...")
-#status = api.PostMedia( "meow " + "#" + hashtag, "./output-imgs/" + image)
-#print(status.text)
+status = api.PostMedia( "meow " + "#" + hashtag, "./output-imgs/" + image)
+print(status.text)
 
 # Wait to reply, get answer and destroy evidence
 if(wait_for_reply):
