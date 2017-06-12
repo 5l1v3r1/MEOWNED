@@ -25,7 +25,7 @@ parser.add_argument('-w','--wait-for-reply', dest='wait_for_reply', help='Tell t
 args = parser.parse_args()
 
 
-message = args.message or file.read(open(args.file, "r"))
+message = args.message or (open(args.file, "r")).read()
 hashtag = args.hashtag
 image = args.image
 shell_code_mode = args.shell_code 
